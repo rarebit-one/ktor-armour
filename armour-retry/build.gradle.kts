@@ -1,6 +1,10 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    `maven-publish`
 }
+
+group = "one.rarebit.armour"
+version = "0.1.0"
 
 kotlin {
     jvm()
