@@ -10,8 +10,8 @@ subprojects {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/rarebit-one/ktor-armour")
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user") as? String
-                    password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.key") as? String
+                    username = System.getenv("GPR_USER") ?: findProperty("gpr.user") as? String
+                    password = System.getenv("GPR_TOKEN") ?: findProperty("gpr.key") as? String
                 }
             }
         }
