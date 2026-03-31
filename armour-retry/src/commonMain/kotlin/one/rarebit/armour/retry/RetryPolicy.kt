@@ -69,6 +69,36 @@ class RetryPolicy(
         throw lastException ?: IllegalStateException("Retry exhausted with no exception")
     }
 
+    /**
+     * Execute [block] that returns Result<T> with retry logic.
+     * Retries when the Result is a failure containing a retryable [ApiError].
+     * Non-retryable errors and successes are returned immediately.
+     */
+    suspend fun <T> executeResult(block: suspend () -> Result<T>): Result<T> {
+        var lastResult = block()
+        var attempt = 0
+        var currentDelay = initialDelayMs
+
+        while (attempt < maxRetries && lastResult.isFailure) {
+            val error = lastResult.exceptionOrNull()
+            if (error !is ApiError || !error.isRetryable) break
+
+            val retryAfter = (error as? ApiError.RateLimited)?.retryAfterSeconds
+            val delayMs = if (retryAfter != null) {
+                retryAfter.toLong() * 1000
+            } else {
+                applyJitter(currentDelay)
+            }
+
+            delay(delayMs)
+            currentDelay = (currentDelay * backoffMultiplier).toLong().coerceAtMost(maxDelayMs)
+            attempt++
+            lastResult = block()
+        }
+
+        return lastResult
+    }
+
     private fun applyJitter(delayMs: Long): Long {
         if (!jitter) return delayMs
         val jitterRange = (delayMs * 0.2).toLong().coerceAtLeast(1)

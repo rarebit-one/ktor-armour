@@ -5,6 +5,7 @@ import one.rarebit.armour.core.ApiError
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class RetryPolicyTest {
@@ -143,6 +144,52 @@ class RetryPolicyTest {
             }
         }
         assertEquals(1, attempts)
+    }
+
+    // --- executeResult tests ---
+
+    @Test
+    fun executeResult_succeeds_on_first_attempt() = runTest {
+        val result = policy.executeResult { Result.success("ok") }
+        assertTrue(result.isSuccess)
+        assertEquals("ok", result.getOrThrow())
+    }
+
+    @Test
+    fun executeResult_retries_on_server_error_then_succeeds() = runTest {
+        var attempts = 0
+        val result = policy.executeResult {
+            attempts++
+            if (attempts < 3) Result.failure(ApiError.Server(500))
+            else Result.success("recovered")
+        }
+        assertTrue(result.isSuccess)
+        assertEquals("recovered", result.getOrThrow())
+        assertEquals(3, attempts)
+    }
+
+    @Test
+    fun executeResult_does_not_retry_client_errors() = runTest {
+        var attempts = 0
+        val result = policy.executeResult<String> {
+            attempts++
+            Result.failure(ApiError.NotFound())
+        }
+        assertTrue(result.isFailure)
+        assertIs<ApiError.NotFound>(result.exceptionOrNull())
+        assertEquals(1, attempts)
+    }
+
+    @Test
+    fun executeResult_exhausts_retries_then_returns_failure() = runTest {
+        var attempts = 0
+        val result = policy.executeResult<String> {
+            attempts++
+            Result.failure(ApiError.Server(503))
+        }
+        assertTrue(result.isFailure)
+        assertIs<ApiError.Server>(result.exceptionOrNull())
+        assertEquals(4, attempts) // 1 initial + 3 retries
     }
 
     @Test

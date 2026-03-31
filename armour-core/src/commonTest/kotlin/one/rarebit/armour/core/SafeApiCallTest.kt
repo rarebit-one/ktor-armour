@@ -139,6 +139,35 @@ class SafeApiCallTest {
     }
 
     @Test
+    fun toApiErrorOrNull_returns_null_on_success() = runTest {
+        val client = mockClient { _ ->
+            respond("""{"id":1,"name":"Alice"}""", HttpStatusCode.OK, jsonHeaders)
+        }
+
+        val response = client.get("/users/1")
+        val error = response.toApiErrorOrNull()
+
+        assertEquals(null, error)
+    }
+
+    @Test
+    fun toApiErrorOrNull_returns_error_on_failure() = runTest {
+        val client = mockClient { _ ->
+            respond(
+                """{"error":{"code":"user.not_found","message":"User not found"}}""",
+                HttpStatusCode.NotFound,
+                jsonHeaders,
+            )
+        }
+
+        val response = client.get("/users/999")
+        val error = response.toApiErrorOrNull()
+
+        assertIs<ApiError.NotFound>(error)
+        assertEquals("user.not_found", error.code)
+    }
+
+    @Test
     fun safeApiCall_handles_malformed_error_body_gracefully() = runTest {
         val client = mockClient { _ ->
             respond("not json at all", HttpStatusCode.BadRequest)
