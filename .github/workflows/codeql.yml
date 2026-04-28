@@ -23,7 +23,7 @@ jobs:
           distribution: zulu
           java-version: 21
       - uses: gradle/actions/setup-gradle@39fdf500b386709a9a4a769f717dad447ac345b9 # v6
-      - uses: github/codeql-action/init@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a # v3
+      - uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
         with:
           languages: java-kotlin
       # Manual build instead of `autobuild`. CodeQL's autobuild script
@@ -34,7 +34,7 @@ jobs:
       # multi-module Gradle setups.)
       - name: Compile sources for CodeQL extraction
         run: ./gradlew --no-daemon assemble
-      - uses: github/codeql-action/analyze@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a # v3
+      - uses: github/codeql-action/analyze@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
         with:
           category: "/language:java-kotlin"
 
