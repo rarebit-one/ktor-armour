@@ -26,11 +26,11 @@ Then work inside `.worktrees/<name>/` for the rest of the session.
 
 ## Consumers
 
-Currently consumed by `luminality-app` (Kotlin Multiplatform mobile app, sibling repo in the rarebit-one workspace). Specifically:
+`ktor-armour` is currently consumed by `luminality-app` (Kotlin Multiplatform mobile app) in the rarebit-one workspace. Specifically:
 
 - `one.rarebit.armour:armour-core`
 - `one.rarebit.armour:armour-retry`
 
 Other modules (`armour-ktor`, `armour-reporting`) are published but not currently consumed by any workspace project.
 
-This gem is published to Maven Central, not RubyGems — the workspace-level `/rollout-gem` skill (which targets rubygems consumers) does NOT apply here. To roll out a new version, bump the `ktorArmour` version in `luminality-app/gradle/libs.versions.toml`.
+This **library** is published to Maven Central, not RubyGems — the workspace-level `/rollout-gem` skill (which targets rubygems consumers) does NOT apply here. To roll out a new version, bump the `ktorArmour` version in `luminality-app/gradle/libs.versions.toml`.
