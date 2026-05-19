@@ -1,13 +1,18 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    `maven-publish`
+    alias(libs.plugins.mavenPublish)
 }
 
-group = "one.rarebit.armour"
-version = "0.4.1"
+mavenPublishing {
+    pom {
+        name.set("armour-reporting")
+        description.set("Reporting/observability hooks for armour-core resilience events.")
+    }
+}
 
 kotlin {
     jvm()
+    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
