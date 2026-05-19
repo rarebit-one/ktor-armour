@@ -1,14 +1,19 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    `maven-publish`
+    alias(libs.plugins.mavenPublish)
 }
 
-group = "one.rarebit.armour"
-version = "0.4.1"
+mavenPublishing {
+    pom {
+        name.set("armour-ktor")
+        description.set("Ktor client plugin wiring armour-core, armour-retry, and armour-reporting into a single install block.")
+    }
+}
 
 kotlin {
     jvm()
+    iosX64()
     iosArm64()
     iosSimulatorArm64()
 

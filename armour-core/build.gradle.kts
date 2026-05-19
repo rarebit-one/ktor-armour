@@ -1,11 +1,15 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    `maven-publish`
+    alias(libs.plugins.mavenPublish)
 }
 
-group = "one.rarebit.armour"
-version = "0.4.1"
+mavenPublishing {
+    pom {
+        name.set("armour-core")
+        description.set("Core resilience primitives (envelope, predicates) for Ktor on Kotlin Multiplatform.")
+    }
+}
 
 kotlin {
     jvm()
