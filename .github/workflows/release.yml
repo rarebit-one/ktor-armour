@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v1
+    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v2
     with:
       project-name: ktor-armour
     permissions:
