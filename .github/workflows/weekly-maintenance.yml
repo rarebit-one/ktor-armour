@@ -13,6 +13,7 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
+  security-events: read
 
 jobs:
   maintenance:
@@ -20,6 +21,6 @@ jobs:
     with:
       stack: kmp
       jdk-version: '21'
-      gradle-test-command: ./gradlew test
+      gradle-test-command: ./gradlew --no-daemon check
     secrets:
       claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
