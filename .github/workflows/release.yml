@@ -6,10 +6,58 @@ on:
       - "v*"
 
 jobs:
+  # Threaded Slack release narration (start root → outcome reply), routed to
+  # #releases. The actual publish is a reusable-workflow call (the `release`
+  # job below), which can't carry its own steps — so narration lives in sibling
+  # jobs that bracket it. The release job's *result* (which spans both the
+  # GitHub-release stage and the Maven-publish stage of the reusable workflow)
+  # is the single outcome signal the outcome reply keys off.
+  #
+  # Slack steps are continue-on-error + the composite soft-degrades (no-ops on
+  # empty token/channel), so narration never fails a release. Status + links only.
+  slack-start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      thread_ts: ${{ steps.slack.outputs.thread_ts }}
+    steps:
+      - name: Slack — release started (thread root)
+        id: slack
+        continue-on-error: true
+        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@main
+        with:
+          bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
+          mode: start
+          text: |-
+            📦 *Library release started* — `${{ github.repository }}`
+            Tag: `${{ github.ref_name }}`
+            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>
+
   release:
+    needs: slack-start
     uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v2
     with:
       project-name: ktor-armour
     permissions:
       contents: write
     secrets: inherit
+
+  slack-outcome:
+    needs: [slack-start, release]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Slack — release outcome (thread reply)
+        continue-on-error: true
+        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@main
+        with:
+          bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
+          mode: reply
+          thread_ts: ${{ needs.slack-start.outputs.thread_ts }}
+          text: |-
+            ${{ needs.release.result == 'success'
+              && format('✅ *Released* — `{0}` `{1}`', github.repository, github.ref_name)
+              || format('🔴 *Release failed* — `{0}` `{1}` · <{2}/{0}/actions/runs/{3}|View run>', github.repository, github.ref_name, github.server_url, github.run_id) }}
