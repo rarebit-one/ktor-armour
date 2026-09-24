@@ -23,6 +23,11 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (Kotlin)
+    # Paused: CodeQL rejects Kotlin 2.4.20 ("too recent", as of codeql-action
+    # v4.38.1 / bundle v2.27.1), so this job has failed on main since
+    # 2026-09-21. Once a CodeQL release supports it, bump codeql-action and
+    # run: gh variable set CODEQL_KOTLIN -R rarebit-one/ktor-armour --body enabled
+    if: vars.CODEQL_KOTLIN == 'enabled'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
