@@ -5,6 +5,8 @@ on:
     tags:
       - "v*"
 
+permissions: {}  # granted per job below (least privilege)
+
 jobs:
   # Threaded Slack release narration (start root → outcome reply), routed to
   # #releases. The actual publish is a reusable-workflow call (the `release`
@@ -16,6 +18,7 @@ jobs:
   # Slack steps are continue-on-error + the composite soft-degrades (no-ops on
   # empty token/channel), so narration never fails a release. Status + links only.
   slack-start:
+    permissions: {}  # Slack only: slack-deploy-thread never uses the GitHub token
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -44,6 +47,7 @@ jobs:
     secrets: inherit
 
   slack-outcome:
+    permissions: {}  # Slack only: slack-deploy-thread never uses the GitHub token
     needs: [slack-start, release]
     if: always()
     runs-on: ubuntu-latest
