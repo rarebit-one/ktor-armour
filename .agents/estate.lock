@@ -1,0 +1,14 @@
+# Rendered-file lock for estate-sync. Edit org/targets by hand;
+# `estate-sync --estate DIR` maintains [estate] and [vendored].
+version = 1
+targets = ["claude"]
+
+[estate]
+repo = "rarebit-one/agent-estate"
+sha = "6ea2d3c47bedcad3d67fb6b1d65df8021f0f1ae4"
+
+[vendored]
+"enforce-signed-commits" = "sha256:e11e76513d997a5aab44ab1b3a21e2638774a2291c4504bab47c392a1e484eaa"
+"enforce-worktree" = "sha256:04ed414ecfddf7df00ddcabedbfeadbb7a77aac9fc13a28090427ae580a718f6"
+"enforce-worktree-bash" = "sha256:89863e8a61c210a708360129a9d89e27831654569f4e3d82ab4d90185509f84b"
+"pre-push-prepare" = "sha256:d30c41e5c2ab69f0f5bb5dc518cb5b62da844c93e66b24117b6f3e25c62f6d19"
