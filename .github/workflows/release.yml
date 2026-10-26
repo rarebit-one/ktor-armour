@@ -27,7 +27,7 @@ jobs:
       - name: Slack — release started (thread root)
         id: slack
         continue-on-error: true
-        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@main
+        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
         with:
           bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
@@ -39,7 +39,7 @@ jobs:
 
   release:
     needs: slack-start
-    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v2
+    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
     with:
       project-name: ktor-armour
     permissions:
@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Slack — release outcome (thread reply)
         continue-on-error: true
-        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@main
+        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
         with:
           bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
