@@ -8,37 +8,7 @@ on:
 permissions: {}  # granted per job below (least privilege)
 
 jobs:
-  # Threaded Slack release narration (start root → outcome reply), routed to
-  # #releases. The actual publish is a reusable-workflow call (the `release`
-  # job below), which can't carry its own steps — so narration lives in sibling
-  # jobs that bracket it. The release job's *result* (which spans both the
-  # GitHub-release stage and the Maven-publish stage of the reusable workflow)
-  # is the single outcome signal the outcome reply keys off.
-  #
-  # Slack steps are continue-on-error + the composite soft-degrades (no-ops on
-  # empty token/channel), so narration never fails a release. Status + links only.
-  slack-start:
-    permissions: {}  # Slack only: slack-deploy-thread never uses the GitHub token
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      thread_ts: ${{ steps.slack.outputs.thread_ts }}
-    steps:
-      - name: Slack — release started (thread root)
-        id: slack
-        continue-on-error: true
-        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
-        with:
-          bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
-          mode: start
-          text: |-
-            📦 *Library release started* — `${{ github.repository }}`
-            Tag: `${{ github.ref_name }}`
-            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>
-
   release:
-    needs: slack-start
     uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
     with:
       project-name: ktor-armour
@@ -46,22 +16,24 @@ jobs:
       contents: write
     secrets: inherit
 
-  slack-outcome:
-    permissions: {}  # Slack only: slack-deploy-thread never uses the GitHub token
-    needs: [slack-start, release]
+  # The outcome goes to the run summary. A failed release also surfaces in
+  # Rarebit HQ's Decide tab (rarebit-sre decisions exporter reads the latest
+  # release.yml run on a v* tag), so a failure never goes silent.
+  summary:
+    permissions: {}
+    needs: release
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Slack — release outcome (thread reply)
-        continue-on-error: true
-        uses: rarebit-one/.github/.github/actions/slack-deploy-thread@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
-        with:
-          bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
-          mode: reply
-          thread_ts: ${{ needs.slack-start.outputs.thread_ts }}
-          text: |-
-            ${{ needs.release.result == 'success'
-              && format('✅ *Released* — `{0}` `{1}`', github.repository, github.ref_name)
-              || format('🔴 *Release failed* — `{0}` `{1}` · <{2}/{0}/actions/runs/{3}|View run>', github.repository, github.ref_name, github.server_url, github.run_id) }}
+      - name: Write release outcome to the run summary
+        env:
+          RESULT: ${{ needs.release.result }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$RESULT" = "success" ]; then
+            echo "### Released \`${GITHUB_REPOSITORY}\` \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Release failed (${RESULT}): \`${GITHUB_REPOSITORY}\` \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Release ${TAG} finished with result ${RESULT}"
+          fi
