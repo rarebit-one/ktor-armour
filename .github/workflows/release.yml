@@ -9,7 +9,7 @@ permissions: {}  # granted per job below (least privilege)
 
 jobs:
   release:
-    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v3  # moving major tag, auto-advanced on .github main (sre-brain#831)
+    uses: rarebit-one/.github/.github/workflows/reusable-maven-central-release.yml@v3  # moving major tag, auto-advanced on .github main
     with:
       project-name: ktor-armour
     permissions:
@@ -17,8 +17,8 @@ jobs:
     secrets: inherit
 
   # The outcome goes to the run summary. A failed release also surfaces in
-  # Rarebit HQ's Decide tab (rarebit-sre decisions exporter reads the latest
-  # release.yml run on a v* tag), so a failure never goes silent.
+  # Rarebit HQ's decisions feed, which reads the latest release.yml run on a
+  # v* tag, so a failure never goes silent.
   summary:
     permissions: {}
     needs: release
